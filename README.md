@@ -17,18 +17,22 @@ application.  It describes what the application 	should  do.
 * No additional password requests should be allowed when shutdown is pending.
 
 ## Interacting with the Password Hashing Application
+
 You can interact/test the application using curl.  The following are examples that would/should
 generate similar returns - the job identifier does not need to conform to a specification.
+
 * Post to the /hash endpoint
-`$ curl -X POST -H "application/json" -d '{"password":"angrymonkey"}'`
-http://127.0.0.1:8088/hash
+`$ curl -X POST -H "application/json" -d '{"password":"angrymonkey"}' http://127.0.0.1:8088/hash`
 > 42
+
 * Get the base64 encoded password
 `$ curl -H "application/json" http://127.0.0.1:8088/hash/1`
 > zHkbvZDdwYYiDnwtDdv/FIWvcy1sKCb7qi7Nu8Q8Cd/MqjQeyCI0pWKDGp74A1g==
+
 * Get the stats
-$ curl 	http://127.0.0.1:8088/stats
+`$ curl http://127.0.0.1:8088/stats`
 > {"TotalRequests":3,"AverageTime":5004625}
+
 * Shutdown
 `$ curl -X POST -d ‘shutdown’ http://127.0.0.1:8088/hash`
 > 200 Empty Response
