@@ -31,6 +31,8 @@ LAST    = -1
 DELAY   = 1
 ME      = os.path.split(sys.argv[FIRST])[LAST] # Name of this file
 MY_PATH = os.path.dirname(os.path.realpath(__file__))  # Path for this file
+LIBRARY_PATH = os.path.join(MY_PATH, "../lib")
+CONFIG_FILE  = os.path.join(MY_PATH, "../conf/target.conf")
 PASSED  = "\033[32mPASSED\033[0m"  # \
 WARNING = "\033[33mWARNING\033[0m" #  \___ Linux-specific colorization
 FAILED  = "\033[31mFAILED\033[0m"  #  /
@@ -38,15 +40,6 @@ ERROR   = "\033[31mERROR\033[0m"   # /
 THREAD_MONITOR = []
 
 
-# Test Setup Variables
-# TODO: Put this into a config file of some sort
-base_url            = "http://localhost"
-port                = 1100
-hash_route          = "hash"
-stats_route         = "stats"
-network_latency     = 1
-server_process_time = 5
-timeout             = server_process_time + network_latency
 
 # Native Functions
 # ----------------------------------------------------------------------------- get_random_password()
@@ -166,6 +159,8 @@ def usage():
     print("    0 - Successful completion of the program. ")
     print("    1 - Bad or missing command line arguments. ")
     print("    2 - Unable to import third-party library")
+    print("    3 - Unable to import custom library")
+
     print(" ")
     print("EXAMPLES: ")
     print("    TODO - I'll make some examples up later. ")
@@ -213,10 +208,25 @@ except:
    sys.stderr.write("         Try: pip3 install requests --user\n\n")
    sys.exit(2)
 
+# Custom library imports
+sys.path.append(LIBRARY_PATH)
+try:
+   from config import readConfigFile
+except:
+   sys.stderr.write("%s -- Unable to import custom library\n" % ERROR)
+   sys.stderr.write("         Try: git pull\n\n")
+   sys.exit(3)
 
-
-
-post_hash_endpoint = "%s:%s/%s" % (base_url, port, hash_route)
+configs = readConfigFile(CONFIG_FILE)
+# Test Setup Variables
+base_url            = configs["base_url"]
+port                = configs["port"]
+hash_route          = configs["hash_route"]
+stats_route         = configs["stats_route"]
+network_latency     = int(configs["network_latency"])
+server_process_time = int(configs["server_process_time"])
+timeout             = server_process_time + network_latency
+post_hash_endpoint  = "%s:%s/%s" % (base_url, port, hash_route)
 
 
 # Start the threads
