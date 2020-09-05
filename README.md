@@ -1,15 +1,17 @@
 # Assignment
-This project holds the test cases and test automation for the Assignment
+This project holds the test automation test cases and defects for the Assignment.
+
 H. Wilson, September 2020 
 
 ## The Approach 
 Testing is mostly automated.
 Test automation scripts are located in the test_cases folder.
-Test automation scripts can be executed individually or by a framework give the contract below:
+Test automation scripts can be executed individually or by a framework given the contract below:
 - Passing tests return a 0 and failing tests return 100. Any other return codes indicate a test script error.
 
 ## Assumptions 
-1. The service should handle up to 300 simultaneous clients.
+1. The Target of Evaluation (TOE) is the Darwin Version of the Server
+1. The service should handle up to 100 simultaneous clients.
 2. Passwords to be hashed should be of length 0 to 100 characters inclusive.
 3. Passwords to be hashed should be of composed of letters, number and special characters.
 4. The hashing server offers a five-second delay 
@@ -23,16 +25,16 @@ Test automation scripts can be executed individually or by a framework give the 
 unless otherwise specified all defects apply to darwin server version 0c3d817
 1. Average response time returned by Get Status route is incorrect returns `{"TotalRequests":10,"AverageTime":86786}` when using call `curl http://127.0.0.1:8098/stats`. Expected response `{"TotalRequests":10,"AverageTime":5002}`
 2. Get Status accepts add via query parameter '?data=value'  
-3. Post Hash Shutdown command fails - server does return a clean 200 but the local server message is 
+3. Post Hash Shutdown command cosmetic issue - server does return a clean 200 but, the local server message is 
 `2020/09/05 13:32:08 Shutdown signal recieved
 2020/09/05 13:32:08 Shutting down` when using the command `curl -X POST -d 'shutdown' http://127.0.0.1:8088/hash`
-and, 'recieved' is misspelled in response.
-
+server local message has  'recieved'  misspelled in message.
+4. Unofficial defect, may be testing environment, sometimes the server is not able to handle large client loads (300 clients) and sometimes it does. 
 
 ## Test Cases 
-1. Happy Path - Process up to 300 simultaneous requests and returns the correct hash 
+1. Happy Path - Process up to 100 simultaneous requests and returns the correct hash 
 2. Zero Length password
-3. Excessive Length Password
+3. Max Length Password 100 characters
 4. Clean Shutdown - Completing any in-flight password requests
 5. Shutdown returns 200 and empty response 
 6. Get Status Should Accept No Data 

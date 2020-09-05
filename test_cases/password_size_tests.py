@@ -1,16 +1,14 @@
 #!/usr/bin/python3
 
-# Test Case: Post password "Happy Path"
-# Posts passwords to the Password Hashing Application.
-# The Password Hashing Application (PHA) should return a
-# job identifier immediately. The PHA should then wait
-# five seconds and compute the password hash.
-# The hashing algorithm should be SHA512.
+# Test Case: Password Size Test
+# Test both the minimum and maximun sized passwords
+# Using the post hash route.
 # Example Post to the /hash endpoint
 # $ curl -X POST -H "application/json" -d '{"password":"angrymonkey"}' http://127.0.0.1:8088/hash
 # RETURNS: job_identifier
+# Then use the job identifier to validate the correct hash was
+# performed by the server.
 
-# Standard library imports
 import sys
 import os
 import random
@@ -19,34 +17,26 @@ import hashlib
 import base64
 from getopt import getopt
 import time
-from threading import Thread
 
 
 # Some useful CONSTANTS and VARIABLES
-VERSION        = "1.0.1"
-VERBOSE        = False
-DEBUG          = False
-FIRST          = 0
-LAST           = -1
-DELAY          = 1
-ME             = os.path.split(sys.argv[FIRST])[LAST] # Name of this file
-MY_PATH        = os.path.dirname(os.path.realpath(__file__))  # Path for this file
-LIBRARY_PATH   = os.path.join(MY_PATH, "../lib")
-CONFIG_FILE    = os.path.join(MY_PATH, "../conf/target.conf")
-RESULTS_FILE   = os.path.join(MY_PATH, "../results/results.csv")
-PASSED         = "\033[32mPASSED\033[0m"  # \
-WARNING        = "\033[33mWARNING\033[0m" #  \___ Linux-specific colorization
-FAILED         = "\033[31mFAILED\033[0m"  #  /
-ERROR          = "\033[31mERROR\033[0m"   # /
-THREAD_MONITOR = [] # array of threads. For each thread, 1 = running, 0 = not running
-RESULT_MONITOR = [] # array of results. 0 = passed 1 = failed
-CLIENTS        = 10 # Default number of clients to execute in parallel
-THREAD_DELAY   = 0.01 # Time in seconds between clients/thread invocations
+VERSION          = "1.0.1"
+VERBOSE          = True
+DEBUG            = False
+FIRST            = 0
+LAST             = -1
+DELAY            = 1
+ME               = os.path.split(sys.argv[FIRST])[LAST] # Name of this file
+MY_PATH          = os.path.dirname(os.path.realpath(__file__))  # Path for this file
+LIBRARY_PATH     = os.path.join(MY_PATH, "../lib")
+CONFIG_FILE      = os.path.join(MY_PATH, "../conf/target.conf")
+RESULTS_FILE     = os.path.join(MY_PATH, "../results/length_test_results.csv")
+PASSED           = "\033[32mPASSED\033[0m"  # \
+WARNING          = "\033[33mWARNING\033[0m" #  \___ Linux-specific colorization
+FAILED           = "\033[31mFAILED\033[0m"  #  /
+ERROR            = "\033[31mERROR\033[0m"   # /
 
 
-# Native Functions
-
-#TODO: Make an object of type password that has cool methods like: get_hash, generate_random, ..., etc.
 # ----------------------------------------------------------------------------- get_random_password()
 def get_random_password(length=0):
    """ generate and return a random password of length specified """
@@ -79,17 +69,11 @@ def write_result_record_to_file(results_file=RESULTS_FILE, record=""):
       return
 
 # ----------------------------------------------------------------------------- post_password()
-def post_password(endpoint, password, thread_index):
-   """ per-thread client actions """
-   global THREAD_MONITOR
-   global RESULT_MONITOR
+def post_password(endpoint, password):
+   """ Post a password to  the post hash route and validate the hash  """
 
-   results = None
    result = FAILED # Assume failure
    try:
-      # mark the client as "running" 1 = running, 0 = not running
-      THREAD_MONITOR[thread_index] = 1
-
       # make the call to post the password
       s = Session()
       # Assumption: Using the argument json={} implies header "application/json"
@@ -126,20 +110,14 @@ def post_password(endpoint, password, thread_index):
          sys.stdout.flush()
 
       # Write the results of this client to the results file
-      # "client, result, password, expected hash, observed hash, hash endpoint, client count, call time, "
-      result_record = "%d, %s, %s, %s, %s, %s, %d, %s " %(thread_index        ,
-                                                          result              ,
-                                                          password            ,
-                                                          hash_expected       ,
-                                                          hash_from_server    ,
-                                                          endpoint            ,
-                                                          sum(THREAD_MONITOR) ,
-                                                          elapsed_time        )
+      # "result, password, expected hash, observed hash, hash endpoint, call time, "
+      result_record = "%s, %s, %s, %s, %s, %d" %(result           ,
+                                                 password         ,
+                                                 hash_expected    ,
+                                                 hash_from_server ,
+                                                 endpoint         ,
+                                                 elapsed_time     )
       write_result_record_to_file(record=result_record)
-
-      # Set the results variable to return to the caller
-      if result == PASSED: RESULT_MONITOR[thread_index] = 0
-      else: RESULT_MONITOR[thread_index] = 1
 
    except Exception as e:
       sys.stderr.write("%s -- Unable to post and validate %s %s\n" % (ERROR, str(endpoint), str(password)))
@@ -147,14 +125,18 @@ def post_password(endpoint, password, thread_index):
       sys.stderr.flush()
       results = None
    finally:
-      THREAD_MONITOR[thread_index] = 0
-      return results
+      return result
+
+
+
+
+
 
 # ----------------------------------------------------------------------------- usage()
 def usage():
     """usage() - Prints the usage message on stdout. """
-    print("\n\n%s, Version %s, Test Case POST password \"Happy Path\"." % (ME, VERSION))
-    print("Happy Path for the POST password route")
+    print("\n\n%s, Version %s, Test Case Password Length." % (ME, VERSION))
+    print("Test the minimum and maximum password lengths")
     print(" ")
     print("USAGE: %s [OPTIONS] " % ME)
     print(" ")
@@ -162,7 +144,6 @@ def usage():
     print("   -h --help      Display this message. ")
     print("   -v --verbose   Runs the program in verbose mode, default: %s. " % VERBOSE)
     print("   -d --debug     Runs the program in debug mode (implies verbose). ")
-    print("   -c --clients=  Client count [0-500], default: %s. " %str(CLIENTS))
     print(" ")
     print("EXIT CODES: ")
     print("    0 - Successful completion of the program, all tests passed. ")
@@ -180,11 +161,10 @@ def usage():
 # Parse and Process the command line arguments
 try:
    arguments = getopt(sys.argv[1:]   ,
-                      'hvdc:'      ,
+                      'hvd'        ,
                       ['help'      ,
                        'verbose'   ,
-                       'debug'     ,
-                       'clients='  ] )
+                       'debug'     ] )
 except:
   sys.stderr.write("ERROR -- Bad or missing command line argument(s)\n\n")
   usage()
@@ -205,16 +185,12 @@ try:
       if arg[0]== "-d" or arg[0] == "--debug":
          DEBUG   = True
          VERBOSE = True
-    for arg in arguments[0]:
-      if arg[0]== "-c" or arg[0] == "--clients":
-         try:
-            CLIENTS = int(arg[1])
-            if CLIENTS > 500: raise ValueError("Client count too high, must be [0-500]")
-         except: raise ValueError("Bad clients argument %s" %str(arg[1]))
 except Exception as e:
     sys.stderr.write("%s -- %s\n\n" %(ERROR,str(e)))
     usage()
     sys.exit(1)
+
+
 
 # Third-party library imports
 # Import third party libraries after parsing command line arguments
@@ -238,6 +214,7 @@ except:
    sys.stderr.write("         Try: git pull\n\n")
    sys.exit(3)
 
+
 configs = readConfigFile(CONFIG_FILE)
 # Test Setup Variables
 base_url            = configs["base_url"]
@@ -246,6 +223,8 @@ hash_route          = configs["hash_route"]
 stats_route         = configs["stats_route"]
 network_latency     = int(configs["network_latency"])
 server_process_time = int(configs["server_process_time"])
+max_password_length = int(configs["max_password_length"])
+min_password_length = 1
 timeout             = server_process_time + network_latency
 post_hash_endpoint  = "%s:%s/%s" % (base_url, port, hash_route)
 
@@ -254,39 +233,22 @@ try: os.remove(RESULTS_FILE)
 except: pass
 
 
-# write the header to the results file
-header = "Client, Result, Password, Expected Hash, Observed Hash, Hash Endpoint, Client Count, Call Time (ms)"
+
+header = "Result, Password, Expected Hash, Observed Hash, Hash Endpoint, Call Time (ms) "
 f = open(RESULTS_FILE, 'a')
 f.write("%s\n" % str(header))
 f.close()
 
-# Start the threads
-counter = 0
+if VERBOSE: print("Test 1: Min Password Length = %d" %min_password_length )
+password = get_random_password(min_password_length)
+if VERBOSE: print("Password: %s" %password )
+post_password(post_hash_endpoint, password)
 
-for i in range(CLIENTS):
-   THREAD_MONITOR.append(0) # Create an array item for the thread and mark it is not running
-   RESULT_MONITOR.append(1) # Create an array item the the result and mark it as failing
-   counter += 1
-   password_length = random.randrange(0, 101, 2)
-   random_password = get_random_password(password_length )
-   if VERBOSE: print("Test %d: password=\"%s\"" %(counter, random_password))
-   t = Thread(target=post_password, args=(post_hash_endpoint, random_password, (len(THREAD_MONITOR)-1 ),))
-   t.start()
-   time.sleep(THREAD_DELAY)
 
-while sum(THREAD_MONITOR) > 0:
-   if VERBOSE: sys.stdout.write("Running %d clients\n" %sum(THREAD_MONITOR)  )
-   sys.stdout.flush()
-   time.sleep(1)
 
-print("%s complete!" %ME)
-print("CLIENTS = %s" %str(len(THREAD_MONITOR)))
-print("FAILED  = %s" %str(sum(RESULT_MONITOR)))
-print("PASSED  = %d" %( len(THREAD_MONITOR) - sum(RESULT_MONITOR)))
+if VERBOSE: print("Test 2: Max Password Length = %d"  %max_password_length)
+password = get_random_password(max_password_length)
+if VERBOSE: print("Password: %s" %password )
+post_password(post_hash_endpoint, password)
 
-# Calculate the exit code 0=all passed 100=one or more failures
-if sum(RESULT_MONITOR) > 0:
-   sys.exit(100)
-else:
-   sys.exit(0)
 
