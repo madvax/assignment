@@ -24,8 +24,8 @@ from threading import Thread
 
 # Some useful CONSTANTS and VARIABLES
 VERSION        = "1.0.1"
-VERBOSE        = True
-DEBUG          = True
+VERBOSE        = False
+DEBUG          = False
 FIRST          = 0
 LAST           = -1
 DELAY          = 1
@@ -38,8 +38,10 @@ PASSED         = "\033[32mPASSED\033[0m"  # \
 WARNING        = "\033[33mWARNING\033[0m" #  \___ Linux-specific colorization
 FAILED         = "\033[31mFAILED\033[0m"  #  /
 ERROR          = "\033[31mERROR\033[0m"   # /
-THREAD_MONITOR = []
+THREAD_MONITOR = [] # array of threads. For each thread, 1 = running, 0 = not running
+RESULT_MONITOR = [] # array of results. 0 = passed 1 = failed
 CLIENTS        = 10 # Default number of clients to execute in parallel
+THREAD_DELAY   = 0.01 # Time in seconds between clients/thread invocations
 
 
 # Native Functions
@@ -80,9 +82,12 @@ def write_result_record_to_file(results_file=RESULTS_FILE, record=""):
 def post_password(endpoint, password, thread_index):
    """ per-thread client actions """
    global THREAD_MONITOR
+   global RESULT_MONITOR
+
    results = None
+   result = FAILED # Assume failure
    try:
-      # mark the cliebt as "running" 1 = running, 0 = not running
+      # mark the client as "running" 1 = running, 0 = not running
       THREAD_MONITOR[thread_index] = 1
 
       # make the call to post the password
@@ -131,6 +136,11 @@ def post_password(endpoint, password, thread_index):
                                                           sum(THREAD_MONITOR) ,
                                                           elapsed_time        )
       write_result_record_to_file(record=result_record)
+
+      # Set the results variable to return to the caller
+      if result == PASSED: RESULT_MONITOR[thread_index] = 0
+      else: RESULT_MONITOR[thread_index] = 1
+
    except Exception as e:
       sys.stderr.write("%s -- Unable to post and validate %s %s\n" % (ERROR, str(endpoint), str(password)))
       sys.stderr.write("%s\n\n" % str(e))
@@ -155,10 +165,11 @@ def usage():
     print("   -c --clients=  Client count [0-500], default: %s. " %str(CLIENTS))
     print(" ")
     print("EXIT CODES: ")
-    print("    0 - Successful completion of the program. ")
+    print("    0 - Successful completion of the program, all tests passed. ")
     print("    1 - Bad or missing command line arguments. ")
     print("    2 - Unable to import third-party library")
     print("    3 - Unable to import custom library")
+    print("  100 - Successful completion of the program, one or more tests failed")
 
     print(" ")
     print("EXAMPLES: ")
@@ -200,8 +211,8 @@ try:
             CLIENTS = int(arg[1])
             if CLIENTS > 500: raise ValueError("Client count too high, must be [0-500]")
          except: raise ValueError("Bad clients argument %s" %str(arg[1]))
-except Exceptions as e:
-    sys.stderr.write("ERROR -- %s\n\n" %str(e))
+except Exception as e:
+    sys.stderr.write("%s -- %s\n\n" %(ERROR,str(e)))
     usage()
     sys.exit(1)
 
@@ -242,23 +253,40 @@ post_hash_endpoint  = "%s:%s/%s" % (base_url, port, hash_route)
 try: os.remove(RESULTS_FILE)
 except: pass
 
+
+# write the header to the results file
+header = "Client, Result, Password, Expected Hash, Observed Hash, Hash Endpoint, Client Count, Call Time (ms)"
+f = open(RESULTS_FILE, 'a')
+f.write("%s\n" % str(header))
+f.close()
+
 # Start the threads
 counter = 0
+
 for i in range(CLIENTS):
-   THREAD_MONITOR.append(0)
+   THREAD_MONITOR.append(0) # Create an array item for the thread and mark it is not running
+   RESULT_MONITOR.append(1) # Create an array item the the result and mark it as failing
    counter += 1
    password_length = random.randrange(0, 101, 2)
    random_password = get_random_password(password_length )
-   print("Test %d: password=\"%s\"" %(counter, random_password))
+   if VERBOSE: print("Test %d: password=\"%s\"" %(counter, random_password))
    t = Thread(target=post_password, args=(post_hash_endpoint, random_password, (len(THREAD_MONITOR)-1 ),))
    t.start()
-   time.sleep(1)
+   time.sleep(THREAD_DELAY)
 
 while sum(THREAD_MONITOR) > 0:
-   sys.stdout.write("Running %d clients\n" %sum(THREAD_MONITOR)  )
+   if VERBOSE: sys.stdout.write("Running %d clients\n" %sum(THREAD_MONITOR)  )
    sys.stdout.flush()
    time.sleep(1)
 
+print("%s complete!" %ME)
+print("CLIENTS = %s" %str(len(THREAD_MONITOR)))
+print("FAILED  = %s" %str(sum(RESULT_MONITOR)))
+print("PASSED  = %d" %( len(THREAD_MONITOR) - sum(RESULT_MONITOR)))
 
-
+# Calculate the exit code 0=all passed 100=one or more failures
+if sum(RESULT_MONITOR) > 0:
+   sys.exit(100)
+else:
+   sys.exit(0)
 
