@@ -37,7 +37,7 @@ def readConfigFile(file_name):
                 pass  # Skip blank lines
             elif line[FIRST] == '#':
                 pass  # Skip comment lines
-            elif line.find(delimeter) == -1:
+            elif line.find(delimiter) == -1:
                 pass  # Skip mal-formed lines (lines without an equal sign character'=')
             else:
                 line = line.strip()  # Clean up the whitespace
