@@ -232,23 +232,28 @@ post_hash_endpoint  = "%s:%s/%s" % (base_url, port, hash_route)
 try: os.remove(RESULTS_FILE)
 except: pass
 
-
-
 header = "Result, Password, Expected Hash, Observed Hash, Hash Endpoint, Call Time (ms) "
 f = open(RESULTS_FILE, 'a')
 f.write("%s\n" % str(header))
 f.close()
 
+test_results = []
+
 if VERBOSE: print("Test 1: Min Password Length = %d" %min_password_length )
 password = get_random_password(min_password_length)
 if VERBOSE: print("Password: %s" %password )
-post_password(post_hash_endpoint, password)
-
-
+test_results.append( post_password(post_hash_endpoint, password))
 
 if VERBOSE: print("Test 2: Max Password Length = %d"  %max_password_length)
 password = get_random_password(max_password_length)
 if VERBOSE: print("Password: %s" %password )
-post_password(post_hash_endpoint, password)
+test_results.append( post_password(post_hash_endpoint, password))
 
-
+print("Results posted to %s" %RESULTS_FILE)
+# Grade the tests
+return_code = 0
+for test in test_results:
+    if test == FAILED:
+        return_code = 100
+    break
+sys.exit(return_code)

@@ -25,6 +25,7 @@ Test automation scripts can be executed individually or by a framework given the
 unless otherwise specified all defects apply to darwin server version 0c3d817
 1. Average response time returned by Get Status route is incorrect returns `{"TotalRequests":10,"AverageTime":86786}` when using call `curl http://127.0.0.1:8098/stats`. Expected response `{"TotalRequests":10,"AverageTime":5002}`
 2. Get Status accepts add via query parameter '?data=value'  
+3. Cannot shutdown server via post hash route until it has processed at least one password hash request. ... sometimes.
 3. Post Hash Shutdown command cosmetic issue - server does return a clean 200 but, the local server message is 
 `2020/09/05 13:32:08 Shutdown signal recieved
 2020/09/05 13:32:08 Shutting down` when using the command `curl -X POST -d 'shutdown' http://127.0.0.1:8088/hash`
@@ -40,7 +41,7 @@ server local message has  'recieved'  misspelled in message.
 6. Get Status Should Accept No Data 
 7. Get Status Should return JSON - total requests and average request response time. 
 8. TODO: Invalid characters in password, pending clarifications on valid characters  
- 
+9. TODO: Although not a requirement, Job ID should be unique 
  
 
 ## Password Hashing Application Specification
