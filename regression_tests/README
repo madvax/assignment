@@ -1,0 +1,5 @@
+This folder holdes teh Regression tests for the Hash Server 
+To invoke the regression tests use: 
+
+python3 -m unittest regression_test
+
