@@ -107,10 +107,15 @@ class Regression_Suite(unittest.TestCase):
       payload = {"password":password}
       return_values = {"status_code": 0, "job_identifier": ""}
       r = None
-      try: r = requests.post(self.post_hash_endpoint,
-                             headers={'Content-type': 'application/json'},
-                             json=payload )
-      except: pass
+      try:
+         r = requests.post(self.post_hash_endpoint,
+                           headers={'Content-type': 'application/json'},
+                           json=payload )
+         return_values["job_identifier"] = str(r.text)
+         print(return_values)
+
+      except Exception as e:
+         raise ValueError(str(e))
 
       if r == None:
          raise ValueError("No response from %s\n" %self.post_hash_endpoint)
@@ -170,7 +175,7 @@ class Regression_Suite(unittest.TestCase):
       """ """
       random_password = self.get_random_password(48)
       if VERBOSE: print("Password: %s" %random_password)
-      response = self.post_password("Test_Pa$$w0rd")
+      response = self.post_password(random_password)
       job_identifier = response["job_identifier"]
       url = "%s/%s" %(self.post_hash_endpoint, str(job_identifier))
       hashed_password_from_server = job_identifier_to_hash(url)
@@ -218,4 +223,3 @@ class Regression_Suite(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
-    

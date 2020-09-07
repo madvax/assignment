@@ -92,8 +92,10 @@ def post_password(endpoint, password, thread_index):
 
       # make the call to post the password
       s = Session()
-      # Assumption: Using the argument json={} implies header "application/json"
-      req = Request("POST", post_hash_endpoint, json={"password": password})
+      #
+      req = Request("POST", post_hash_endpoint,
+                    headers={'Content-type': 'application/json'},
+                    json={"password": password})
       prepped = s.prepare_request(req)
       if VERBOSE:
          sys.stdout.write("   - Calling %s\n" %endpoint)
@@ -108,7 +110,7 @@ def post_password(endpoint, password, thread_index):
          sys.stdout.write("   - Status Text: %s\n" % str(resp.text))
          sys.stdout.flush()
 
-      # Using the job itentifier, get the hashed password from the API
+      # Using the job identifier, get the hashed password from the API
       get_hash_endpoint = "%s:%s/hash/%s" %(base_url, str(port), str(resp.text))
       hash_from_server = job_identifier_to_hash(get_hash_endpoint)
       hash_expected    = get_sha512_hash(password)
