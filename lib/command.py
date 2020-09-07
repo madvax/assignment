@@ -22,11 +22,7 @@ PAUSE_PROMPT = "Please press <Enter> to continue ..."
 
 # ---------------------------------------------------------------------- usage()
 def usage():
-    """
-    usage() - Prints the usage message on stdout.
-
-    :return:
-    """
+    """  usage() - Prints the usage message on stdout.  """
     print("""
    
 {this_file}, Version {version}, This library holds the Command class.
@@ -49,43 +45,26 @@ EXAMPLES:
 
 # ---------------------------------------------------------------------- pause()
 def pause():
-    """
-    pause() Holds script execution until the user responds.
-
-    :return:
-    """
+    """ pause() Holds script execution until the user responds.  """
     raw_input(PAUSE_PROMPT)
     return
 
 
 # ------------------------------------------------------------------------ now()
 def now():
-    """
-    now() returns a timestamp string of the form "YYYY-MM-DD, HH:MM:SS"
-
-    :return:
-    """
+    """  now() returns a timestamp string of the form "YYYY-MM-DD, HH:MM:SS". """
     return time.strftime("%Y-%b-%d, %H:%M:%S", time.localtime())
 
 
 # ------------------------------------------------------------------ timeStamp()
 def timeStamp():
-    """
-    timeStamp() returns a timestamp string of the form "YYYY-MM-DD, HH:MM:SS"
-
-    :return:
-    """
+    """  timeStamp() returns a timestamp string of the form "YYYY-MM-DD, HH:MM:SS". """
     return time.strftime("%Y-%b-%d, %H:%M:%S", time.localtime())
 
 
 # ------------------------------------------------------------------ showError()
 def showError(message):
-    """
-    showError(str message) write error message to stderr
-
-    :param message:
-    :return:
-    """
+    """  showError(str message) write error message to stderr. """
     message = str(message)
     sys.stderr.write("\n\nERROR -- %s\n\n" % message)
     sys.stderr.flush()
@@ -94,12 +73,7 @@ def showError(message):
 
 # ---------------------------------------------------------------- showWarning()
 def showWarning(message):
-    """
-    showWarning(str message) write error message to stderr
-
-    :param message:
-    :return:
-    """
+    """ showWarning(str message) write error message to stderr.  """
     message = str(message)
     sys.stderr.write("\n\nWARNING -- %s\n\n" % message)
     sys.stderr.flush()
@@ -108,22 +82,15 @@ def showWarning(message):
 
 # ---------------------------------------------------------------- showMessage()
 def showMessage(message):
-    """
-    showMessage(str message) write message to stdout
-    :param message:
-    :return:
-    """
+    """ showMessage(str message) write message to stdout. """
     message = str(message)
     sys.stdout.write("\n%s\n" % message)
     sys.stdout.flush()
     return
 
-
 # ----------------------------------------------------------------------- main()   
 def main():
-    """"
-    :return:
-    """
+    """ main """
     # --- Unit tests
 
     testCounter = 0
