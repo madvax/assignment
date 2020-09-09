@@ -1,0 +1,7 @@
+This folder contains some executables that can be used to execute tests and access remote servers.
+
+The file test_runner.py is a script that can execute suites of tests and logs the results 
+
+The agent.py script sets up a TCP listener on remote servers to all for control of remote servers
+
+ 
