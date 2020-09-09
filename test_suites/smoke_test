@@ -1,0 +1,9 @@
+# Smoke test suite.
+# 
+# You should make sure the test target is running *BEFORE* running this suite.
+# Special note: some tests are commented out. 
+
+# clean_shutdown.py
+# password_size_tests.py
+post_password_happy_path.py 
+# shutdown_response.py

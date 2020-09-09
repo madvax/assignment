@@ -1,0 +1,5 @@
+This folder holds test suites for the test runner.
+
+A test suite is just an ASCII text file tha holds the names of the test 
+cases in the test_case folder that should be executed as a suite.
+  
