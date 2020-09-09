@@ -4,6 +4,6 @@
 # Special note: some tests are commented out. 
 
 # clean_shutdown.py
-# password_size_tests.py
+password_size_tests.py
 post_password_happy_path.py 
 # shutdown_response.py
